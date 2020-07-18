@@ -39,10 +39,10 @@ rep.add_input_field("CLK", clk)
 rep.add_output_field("A", clk)
 
 # Add a population to the simulation
-simulation.add_population(rep)
+simulation.add_population("rep", rep)
 
 # Add a field to the population
-simulation.add_field(clk)
+simulation.add_field("clk", clk)
 
 # Execute simulation step-by-step
 # Call to simulation.step() returns false when finished
