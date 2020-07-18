@@ -118,26 +118,22 @@ class Repressilator(Population):
             "output_fields" : {f.name : (self._protein[p] * self.kS) for (p,f) in out_fields }
         }
 
-    def update_states(self, states):
-        self._states
-
-    def get_states(self):
-        return self._states
-
 
 class FlipFlop(Population):
     def __init__(self, name):
         super().__init__(cell_type='FlipFlop', name=name)
         # Parameters
-        self.Kd      = 4.44   # threshold
+        self.Kd      = 1.04   # threshold
         self.n       = 4.35   # exponent
-        self.alpha_1 = 0.3473 # mol/min
-        self.alpha_2 = 0.8227 # mol/min
-        self.alpha_3 = 0.3272 # mol/min
-        self.alpha_4 = 0.8257 # mol/min
+        self.alpha_1 = 0.0781 # mol/min
+        self.alpha_2 = 0.1851 # mol/min
+        self.alpha_3 = 0.0736 # mol/min
+        self.alpha_4 = 0.1858 # mol/min
         self.delta_1 = 0.0322 # mol/min
         self.delta_2 = 0.0115 # mol/min
-        self.kS      = 0.5    # mol/min
+        self.beta    = 0.02   # mol/min
+        self.delta_m = 0.01   # mol/min
+        self.kS      = 1.1    # mol/min
 
     def initialize_states(self, size, cell_positions):
         self._cell_positions = cell_positions
@@ -153,22 +149,22 @@ class FlipFlop(Population):
         D = self._cell_positions * D_state["internal"]
 
         #A
-        d_A  =  self.alpha_1 * ( ((D/self.Kd) ** self.n)/(1 + ((D/self.Kd) ** self.n) + ((CLK/self.Kd) ** self.n) + ((D/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n)))
-        d_A  += self.alpha_2 * (1/(1 + ((self._protein["Ac"]/self.Kd) ** self.n))) - self.delta_1 * self._protein["A"]
+        d_mA  =  self.alpha_1 * ( ((D/self.Kd) ** self.n)/(1 + ((D/self.Kd) ** self.n) + ((CLK/self.Kd) ** self.n) + ((D/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n)))
+        d_mA  += self.alpha_2 * (1/(1 + ((self._protein["Ac"]/self.Kd) ** self.n))) - self.delta_1 * self._mRNA["mA"]
         #Ac
-        d_Ac =  self.alpha_1 * (1/(1 + ((D/self.Kd) ** self.n) + ((CLK/self.Kd) ** self.n) + ((D/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))) 
-        d_Ac += self.alpha_2 * (1/(1 + ((self._protein["A"]/self.Kd) ** self.n)))  - self.delta_1 * self._protein["Ac"]
+        d_mAc =  self.alpha_1 * (1/(1 + ((D/self.Kd) ** self.n) + ((CLK/self.Kd) ** self.n) + ((D/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))) 
+        d_mAc += self.alpha_2 * (1/(1 + ((self._protein["A"]/self.Kd) ** self.n)))  - self.delta_1 * self._mRNA["mAc"]
         #Q
-        d_Q  =  self.alpha_3 * ((((self._protein["A"]/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))/(1 + ((self._protein["A"]/self.Kd) ** self.n) + ((CLK/self.Kd) ** self.n) + ((self._protein["A"]/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))) 
-        d_Q  += self.alpha_4 * (1/(1 + ((self._protein["Qc"]/self.Kd) ** self.n))) - self.delta_2 * self._protein["Q"]
+        d_mQ  =  self.alpha_3 * ((((self._protein["A"]/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))/(1 + ((self._protein["A"]/self.Kd) ** self.n) + ((CLK/self.Kd) ** self.n) + ((self._protein["A"]/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))) 
+        d_mQ  += self.alpha_4 * (1/(1 + ((self._protein["Qc"]/self.Kd) ** self.n))) - self.delta_2 * self._mRNA["mQ"]
         #Qc
-        d_Qc =  self.alpha_3 * ((((self._protein["Ac"]/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))/(1 + ((self._protein["Ac"]/self.Kd) ** self.n) + ((CLK/self.Kd) ** self.n) + ((self._protein["Ac"]/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))) 
-        d_Qc += self.alpha_4 * (1/(1 + ((self._protein["Q"]/self.Kd) ** self.n))) - self.delta_2 * self._protein["Qc"]
+        d_mQc =  self.alpha_3 * ((((self._protein["Ac"]/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))/(1 + ((self._protein["Ac"]/self.Kd) ** self.n) + ((CLK/self.Kd) ** self.n) + ((self._protein["Ac"]/self.Kd) ** self.n)*((CLK/self.Kd) ** self.n))) 
+        d_mQc += self.alpha_4 * (1/(1 + ((self._protein["Q"]/self.Kd) ** self.n))) - self.delta_2 * self._mRNA["mQc"]
 
-        d_mA  = 0
-        d_mAc = 0
-        d_mQ  = 0
-        d_mQc = 0
+        d_A  = self._cell_positions * (self.beta * self._mRNA["mA"]  - self.delta_m * self._protein["A"])
+        d_Ac = self._cell_positions * (self.beta * self._mRNA["mAc"] - self.delta_m * self._protein["Ac"])
+        d_Q  = self._cell_positions * (self.beta * self._mRNA["mQ"]  - self.delta_m * self._protein["Q"])
+        d_Qc = self._cell_positions * (self.beta * self._mRNA["mQc"] - self.delta_m * self._protein["Qc"])
 
         # Get output field
         out_fields = list(self._output_fields.items())
@@ -183,14 +179,14 @@ class Or(Population):
     def __init__(self, name, cell_type='Or'):
         super().__init__(cell_type=cell_type, name=name)
         # Parameters
-        self.Kd      = 5.0   # threshold
+        self.Kd      = 1.5   # threshold
         self.n       = 4      # exponent
-        self.alpha   = 0.15    # mol/min
-        self.beta    = 0.1    # mol/min
+        self.alpha   = 0.3    # mol/min
+        self.beta    = 0.0125 # mol/min
         self.delta_p = 0.01   # mol/min
         self.delta_m = 0.01   # mol/min
-        self.kS      = 0.5    # mol/min
-        self.kappa   = 0.05   # mol/min
+        self.kS      = 1.5    # mol/min
+        self.kappa   = 0.1    # mol/min
 
     def initialize_states(self, size, cell_positions):
         self._cell_positions = cell_positions
@@ -225,6 +221,8 @@ class Or(Population):
 class SInvOr(Or):
     def __init__(self, name):
         super().__init__(cell_type='SInvOr', name=name)
+        self.alpha   = 0.15   # mol/min
+        self.beta    = 0.025  # mol/min
 
     def step(self, t):
         D1_state = self._input_fields["D1"].get_current_state()
@@ -237,7 +235,7 @@ class SInvOr(Or):
         SYNC = self._cell_positions * SYNC_state["internal"]
 
         #mA
-        d_mA = self._cell_positions * self.alpha * ( 1/(1 + ((D1/self.Kd) ** self.n)) + ((D2/self.Kd) ** self.n)/(1 + ((D2/self.Kd) ** self.n)) ) + ((self.kappa * SYNC)/(1 + SYNC)) - self.delta_m * self._mRNA["mA"]
+        d_mA = self._cell_positions * self.alpha * ( 1/(1 + ((D1/self.Kd) ** self.n)) + ((D2/self.Kd) ** self.n)/(1 + ((D2/self.Kd) ** self.n)) ) + ((self.kappa)/(1 + SYNC)) - self.delta_m * self._mRNA["mA"]
         # A
         d_A  = self._cell_positions * (self.beta * self._mRNA["mA"] - self.delta_p * self._protein["A"])
 
@@ -281,13 +279,14 @@ class Not(Population):
     def __init__(self, name):
         super().__init__(cell_type="Not", name=name)
         # Parameters
-        self.Kd      = 1.6   # threshold
-        self.n       = 3      # exponent
-        self.alpha   = 1     # mol/min
+        self.Kd      = 0.75   # threshold
+        self.n       = 4      # exponent
+        self.alpha   = 1.5    # mol/min
         self.beta    = 0.25   # mol/min
-        self.delta_p = 0.02   # mol/min
-        self.delta_m = 0.02   # mol/min
+        self.delta_p = 0.05   # mol/min
+        self.delta_m = 0.05   # mol/min
         self.kS      = 0.5    # mol/min
+        self.kappa   = 0.25   # mol/min
 
     def initialize_states(self, size, cell_positions):
         self._cell_positions = cell_positions
@@ -299,8 +298,11 @@ class Not(Population):
         D_state = self._input_fields["D"].get_current_state()
         D = self._cell_positions * D_state["internal"]
 
+        SYNC_state = self._input_fields["SYNC"].get_current_state()
+        SYNC = self._cell_positions * SYNC_state["internal"]
+
         #mA
-        d_mA = self._cell_positions * ( self.alpha/(1 + ((D/self.Kd) ** self.n)) ) - self.delta_m * self._mRNA["mA"]
+        d_mA = self._cell_positions * ( self.alpha/(1 + ((D/self.Kd) ** self.n)) ) + ((self.kappa * SYNC)/(1 + SYNC)) - self.delta_m * self._mRNA["mA"]
         # A
         d_A  = self._cell_positions * (self.beta * self._mRNA["mA"] - self.delta_p * self._protein["A"])
 

@@ -9,11 +9,11 @@ class Field():
             raise RuntimeError("Field name cannot be None")
 
         # Parameters
-        self.field_diff_rate = 0.5
-        self.membrane_diff_rate = 1
-        self.kSi = 1 # Degradation in mol/min
+        self.field_diff_rate = 0.5  # through-field diffusion rate
+        self.membrane_diff_rate = 1 # through-membrane diffusion rate
+        self.kSi = 1    # Degradation in mol/min
         self.kSe = 0.01 # Degradation in mol/min
-        self._h2 = 0.25
+        self._h2 = 0.25 
         self._size = None
         self.border_fixed = False
         self.periodic_bounds = True
