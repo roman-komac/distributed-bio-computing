@@ -4,7 +4,7 @@
 
 This repository provides Python scripts for simulating distributed biological computing structures. The basis of this simulation framework is a reaction-diffusion system.
 The code featured in this repository is part of the article 
-[Distributed biological computing: from oscillators, logic gates and switches to a multicellular processor]().
+[Distributed biological computing: from oscillators, logic gates and switches to a multicellular processor](https://www.researchgate.net/publication/348738260_Distributed_biological_computation_from_oscillators_logic_gates_and_switches_to_a_multicellular_processor_and_neural_computing_applications).
 
 
 
